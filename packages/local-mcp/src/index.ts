@@ -1,20 +1,20 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { sendTelegramMessage, telegramMessageInputSchema } from 'sendkit-core'
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { sendTelegramMessage, telegramMessageInputSchema } from "sendkit-core";
 
 const server = new McpServer({
   name: "sendkit-local",
   version: "1.0.0",
-})
+});
 
 function getTelegramBotToken() {
-  const token = process.env.TELEGRAM_BOT_TOKEN
+  const token = process.env.TELEGRAM_BOT_TOKEN;
 
   if (!token) {
-    throw new Error("TELEGRAM_BOT_TOKEN environment variable is not set")
+    throw new Error("TELEGRAM_BOT_TOKEN environment variable is not set");
   }
 
-  return token
+  return token;
 }
 
 server.registerTool(
@@ -22,25 +22,25 @@ server.registerTool(
   {
     title: "Telegram",
     description: "Send messages to a Telegram bot",
-    inputSchema: telegramMessageInputSchema.shape
+    inputSchema: telegramMessageInputSchema.shape,
   },
   async (input) => {
     const result = await sendTelegramMessage({
       ...input,
-      botToken: getTelegramBotToken()
-    })
+      botToken: getTelegramBotToken(),
+    });
 
     return {
       content: [
         {
           type: "text",
-          text: `Message sent to Telegram bot with message ID: ${result.messageId} to chat ID: ${result.chatId}`
-        }
+          text: `Message sent to Telegram bot with message ID: ${result.messageId} to chat ID: ${result.chatId}`,
+        },
       ],
-      structuredContent: result
-    }
-  }
-)
+      structuredContent: result,
+    };
+  },
+);
 
-const transport = new StdioServerTransport()
-await server.connect(transport)
+const transport = new StdioServerTransport();
+await server.connect(transport);

@@ -1,25 +1,25 @@
-import {Hono, type Context} from 'hono';
-import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-import {WebStandardStreamableHTTPServerTransport} from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import {createClerkClient} from "@clerk/backend";
-import {generateClerkProtectedResourceMetadata} from '@clerk/mcp-tools/server'
-import { telegramMessageInputSchema, sendTelegramMessage } from 'sendkit-core';
+import { Hono, type Context } from "hono";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { createClerkClient } from "@clerk/backend";
+import { generateClerkProtectedResourceMetadata } from "@clerk/mcp-tools/server";
+import { telegramMessageInputSchema, sendTelegramMessage } from "sendkit-core";
 
 const clerkPublishableKey = process.env.CLERK_PUBLISHABLE_KEY;
 const clerkSecretKey = process.env.CLERK_SECRET_KEY;
 
-if(!clerkPublishableKey) {
+if (!clerkPublishableKey) {
   throw new Error("CLERK_PUBLISHABLE_KEY is not defined in the environment variables.");
 }
 
-if(!clerkSecretKey) {
+if (!clerkSecretKey) {
   throw new Error("CLERK_SECRET_KEY is not defined in the environment variables.");
 }
 
 const clerkClient = createClerkClient({
   publishableKey: clerkPublishableKey,
   secretKey: clerkSecretKey,
-})
+});
 
 function createServer(botToken: string) {
   const server = new McpServer({
@@ -32,25 +32,25 @@ function createServer(botToken: string) {
     {
       title: "Telegram",
       description: "Send messages to a Telegram bot",
-      inputSchema: telegramMessageInputSchema.shape
+      inputSchema: telegramMessageInputSchema.shape,
     },
     async (input) => {
       const result = await sendTelegramMessage({
         ...input,
-        botToken
-      })
-  
+        botToken,
+      });
+
       return {
         content: [
           {
             type: "text",
-            text: `Message sent to Telegram bot with message ID: ${result.messageId} to chat ID: ${result.chatId}`
-          }
+            text: `Message sent to Telegram bot with message ID: ${result.messageId} to chat ID: ${result.chatId}`,
+          },
         ],
-        structuredContent: result
-      }
-    }
-  )
+        structuredContent: result,
+      };
+    },
+  );
 
   return server;
 }
@@ -65,37 +65,37 @@ function unauthorizedMcpResponse(c: Context, bottoken: string) {
   c.header(
     "WWW-Authenticate",
     `Bearer resource_metadata="${protectedResourceMetadataUrl(c, bottoken)}"`,
-  )
+  );
 
   return c.json({ error: "Unauthorized" }, 401);
 }
 
 app.get("/.well-known/oauth-protected-resource/:botToken/mcp", (c) => {
   return c.json(
-  generateClerkProtectedResourceMetadata({
+    generateClerkProtectedResourceMetadata({
       publishableKey: clerkPublishableKey,
-      resourceUrl: new URL(`/${c.req.param('botToken')}/mcp`, c.req.url).toString(),
-    })
-  )
-})
+      resourceUrl: new URL(`/${c.req.param("botToken")}/mcp`, c.req.url).toString(),
+    }),
+  );
+});
 
-app.post('/:botToken/mcp', async (c) => {
-  const botToken = c.req.param('botToken');
-  const authHeader = c.req.header('authorization');
+app.post("/:botToken/mcp", async (c) => {
+  const botToken = c.req.param("botToken");
+  const authHeader = c.req.header("authorization");
 
-  if(!authHeader?.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith("Bearer ")) {
     return unauthorizedMcpResponse(c, botToken);
   }
 
   try {
     const requestState = await clerkClient.authenticateRequest(c.req.raw, {
-      acceptsToken: "oauth_token"
-    })
+      acceptsToken: "oauth_token",
+    });
 
-    if(!requestState.isAuthenticated) {
+    if (!requestState.isAuthenticated) {
       return unauthorizedMcpResponse(c, botToken);
     }
-  } catch (error) {
+  } catch {
     return unauthorizedMcpResponse(c, botToken);
   }
 
@@ -111,11 +111,11 @@ app.post('/:botToken/mcp', async (c) => {
   try {
     return await transport.handleRequest(c.req.raw);
   } finally {
-    await server.close()
+    await server.close();
   }
-})
+});
 
-app.notFound((c) => c.json({ error: 'Not Found' }, 404));
+app.notFound((c) => c.json({ error: "Not Found" }, 404));
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -128,4 +128,4 @@ export default {
 
     return app.fetch(new Request(url, req));
   },
-}
+};
