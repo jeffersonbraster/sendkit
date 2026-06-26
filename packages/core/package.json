@@ -1,5 +1,5 @@
 {
-  "name": "sendkit-core",
+  "name": "@oiesooujeje/sendkit-core",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -8,5 +8,14 @@
   },
   "dependencies": {
     "zod": "^4.4.3"
-  }
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ]
 }
