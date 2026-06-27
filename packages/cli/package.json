@@ -1,7 +1,24 @@
 {
   "name": "@oiesooujeje/sendkit",
-  "version": "1.0.0",
-  "private": true,
+  "version": "1.0.1",
+  "bin": {
+    "sendkit": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "dependencies": {
     "commander": "^15.0.0",
@@ -9,6 +26,8 @@
     "zod": "^4.4.3"
   },
   "scripts": {
-    "build": "tsdown"
+    "build": "tsdown",
+    "pack:dry": "bun run build && bun pm pack --dry-run",
+    "prepublishOnly": "bun run build"
   }
 }
